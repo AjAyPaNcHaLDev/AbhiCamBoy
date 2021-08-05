@@ -15,6 +15,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -37,6 +38,8 @@ public class MainActivity extends AppCompatActivity {
 ImageView imageView;
 Button capturePic;
     public static final int REQUEST_IMAGE_CAPTURE=1;
+    private String TAG = "TAGA";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,10 +63,11 @@ Button capturePic;
 
 
     private void dispatchTakePictureIntent() {
-
+        Log.e(TAG, "dispatchTakePictureIntent: " );
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         // Ensure that there's a camera activity to handle the intent
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            Log.e(TAG, "dispatchTakePictureIntent: inside resoleActivity," );
             // Create the File where the photo should go
             File photoFile = null;
             try {
@@ -75,12 +79,13 @@ Button capturePic;
             // Continue only if the File was successfully created
             if (photoFile != null) {
                 Uri photoURI = FileProvider.getUriForFile(this,
-                        "com.example.android.fileprovider",
+                        "com.example.camera.fileprovider",
                         photoFile);
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                 startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
             }
         }
+        Log.e(TAG, "dispatchTakePictureIntent: end" );
     }
 
 
@@ -88,6 +93,7 @@ Button capturePic;
     String currentPhotoPath;
 
     private File createImageFile() throws IOException {
+        Log.e(TAG, "createImageFile: " );
         // Create an image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String imageFileName = "JPEG_" + timeStamp + "_";
@@ -100,6 +106,7 @@ Button capturePic;
 
         // Save a file: path for use with ACTION_VIEW intents
         currentPhotoPath = image.getAbsolutePath();
+        Log.e(TAG, "createImageFile: end "+currentPhotoPath );
         return image;
     }
 
@@ -113,9 +120,7 @@ Button capturePic;
             Bitmap finalBitmap=(Bitmap)data.getExtras().get("data");
             imageView.setImageBitmap(finalBitmap);
         }else {
-            Toast.makeText(MainActivity.this,"ero",Toast.LENGTH_SHORT).show();
-
-            return;
+            Toast.makeText(MainActivity.this,"error",Toast.LENGTH_SHORT).show();
         }
 
     }
