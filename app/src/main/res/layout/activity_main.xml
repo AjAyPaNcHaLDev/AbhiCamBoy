@@ -1,25 +1,87 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".MainActivity">
-<ImageView
-    android:layout_width="match_parent"
-    android:layout_height="300dp"
-    android:id="@+id/image_view"/>
-    <Button
-        android:layout_width="333dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:gravity="center"
-        android:textAlignment="center"
-      android:text="Capture Picture"
 
-        android:layout_gravity="center"
-        android:id="@+id/capturePic"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAlignment="center"
+            android:gravity="center"
+            android:fontFamily="sans-serif"
+            android:textColor="#f777"
+            android:textSize="15sp"
+            android:layout_marginTop="33dp"
+            android:layout_marginBottom="12sp"
+            android:text="Abohar Survay\n House And Properties Tax"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Enter Zone "
+            android:textSize="15sp"
+            android:layout_marginBottom="19sp"
+            />
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:layout_marginBottom="12sp"
+            android:id="@+id/inpZONE"
+            android:hint="1,2,3,4,5,6,7"
+            />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Enter GIS "
+            android:textSize="15sp"
+            android:layout_marginBottom="12sp"
+
+            />
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPersonName"
+            android:layout_marginBottom="12sp"
+            android:id="@+id/inpGIS"
+            android:hint="00000-00"
+            />
+
+        <Button
+            android:layout_width="300dp"
+            android:layout_height="wrap_content"
+            android:text="Capture and Save "
+            android:id="@+id/capturePic"
+            android:textAlignment="center"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:layout_marginBottom="12sp"
+            />
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="333dp"
+            android:id="@+id/image_view"
+            />
 
 
-</LinearLayout>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAlignment="center"
+            android:gravity="center"
+            android:textSize="12sp"
+            android:layout_marginTop="50dp"
+            android:textColor="#00ff00"
+            android:text="developed by \n Tech Infa Solutions"/>
+
+    </LinearLayout>
+</ScrollView>
