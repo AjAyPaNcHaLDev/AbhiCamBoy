@@ -165,7 +165,7 @@ public class MainActivity extends AppCompatActivity {
                         Locale.getDefault()).format(new Date());
                 String file_name="Z-"+getZone()+"-"+getGIS();
                 String root = Environment.getExternalStorageDirectory().getAbsolutePath();
-                File myDir = new File(root + "/Abohar Survey Images1 /"+dd+"-"+mm+"-"+yyyy+"/"+"Z-"+getZone());
+                File myDir = new File(root + "/Abohar Survey Images /"+dd+"-"+mm+"-"+yyyy+"/"+"Z-"+getZone());
                 myDir.mkdirs();
 
                 if(myDir.exists()){
@@ -287,6 +287,18 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onPermissionDenied(PermissionDeniedResponse permissionDeniedResponse) {
+
+                capturePic=findViewById(R.id.capturePic);
+                capturePic.setText("Please allow all permissions");
+                capturePic.setOnClickListener(
+                        new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                myPermission();
+                                capturePic.setText("Capture & Save ");
+                            }
+                        }
+                );
                 Intent intent =new Intent();
                 intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
                 Uri uri=Uri.fromParts("package",getPackageName(),null);
