@@ -150,8 +150,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
-
-    @Override
+@Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_IMAGE_CAPTURE) {
@@ -162,20 +161,109 @@ public class MainActivity extends AppCompatActivity {
                 // Load the taken image into a preview
 
                 imageView.setImageBitmap(takenImage);
+                String yyyy = new SimpleDateFormat("yyyy",
+                        Locale.getDefault()).format(new Date());
+                String mm = new SimpleDateFormat("MM",
+                        Locale.getDefault()).format(new Date());
+                String dd = new SimpleDateFormat("dd",
+                        Locale.getDefault()).format(new Date());
+                String file_name="Z-"+getZone()+"-"+getGIS();
+                String root = Environment.getExternalStorageDirectory().getPath();
+                File myDir = new File(root + "/Android/data/com.example.camera/files/Pictures/Abohar Survey Images /"+dd+"-"+mm+"-"+yyyy+"/"+"Z-"+getZone());
+                myDir.mkdirs();
+
+                if(myDir.exists()){
+
+                    String fname = file_name+".jpeg";
+                    File file = new File (myDir, fname);
+
+
+                    if(file.exists()){
+
+                        AlertDialog.Builder reName=new AlertDialog.Builder(MainActivity.this);
+                        reName.setTitle("Alert");
+                        reName.setMessage("You went to "+getZone()+"-" +getGIS()+" reCapture picture ?"+currentPhotoPath+ imageFileName);
+                        reName.setCancelable(false);
+
+                        reName.setPositiveButton("Yes reCapture",
+                                new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        file.delete ();
+                                        try {
+
+                                            FileOutputStream out = new FileOutputStream(file);
+                                            takenImage.compress(Bitmap.CompressFormat.JPEG, 20, out);
+                                            out.flush();
+                                            out.close();
+                                            imageView.setImageBitmap(takenImage);
+                                            Toast.makeText(MainActivity.this,"Z-"+getZone()+"-"+getGIS()+ "re recapture successfully Saved", Toast.LENGTH_LONG).show();
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                            Toast.makeText(MainActivity.this,e.toString(), Toast.LENGTH_LONG).show();
+                                        }
+                                    }
+                                }
+
+
+                        );
+
+                        reName.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.cancel();
+                            }
+                        });
+
+                        AlertDialog alr=reName.create();
+                        alr.show();
+
+                    }
+                    if(!file.exists()){
+
+                        try {
+                            Toast.makeText(MainActivity.this,"try block enter", Toast.LENGTH_LONG).show();
+                            FileOutputStream out = new FileOutputStream(file);
+                            takenImage.compress(Bitmap.CompressFormat.JPEG, 20, out);
+                            out.flush();
+                            out.close();
+                            imageView.setImageBitmap(takenImage);
+                            Toast.makeText(MainActivity.this,"Z-"+getZone()+"-"+getGIS()+ " successfully Saved", Toast.LENGTH_LONG).show();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            Toast.makeText(MainActivity.this,e.toString(), Toast.LENGTH_LONG).show();
+                        }
+
+
+                    }
 
 
 
-                File  ddd= new File(currentPhotoPath);
 
+                }else{
 
-                File rename =new File (storageDir+"/Z-"+getZone()+"-"+getGIS()+".jpeg") ;
-                boolean flag = ddd.renameTo(rename);
+                    AlertDialog.Builder dirNotFound  =new AlertDialog.Builder(MainActivity.this);
+                    dirNotFound.setMessage("a Technical error  while create Folder !\n"+myDir);
+                    dirNotFound.setTitle("Opps");
+                    dirNotFound.setPositiveButton("ok", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.cancel();
+                        }
+                    });
+
+                    AlertDialog alr=dirNotFound.create();
+                    alr.show();
+
+                }
 
             } else { // Result was a failure
                 Toast.makeText(this, "Picture wasn't taken!", Toast.LENGTH_SHORT).show();
             }
         }
 
+        File del = new File (currentPhotoPath);
+        del.delete();
 
     }
 
