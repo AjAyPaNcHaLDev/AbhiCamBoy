@@ -46,12 +46,22 @@ public class MainActivity extends AppCompatActivity {
     public static final int REQUEST_IMAGE_CAPTURE=1;
     private String TAG = "TAGA";
     File photoFile = null;
-    EditText inpGIS, inpZONE;
+    EditText inpGIS, inpZONE,inpOther;
     String GIS;
     String Zone;
+    String Other;
     String imageFileName;
     File storageDir;
     Bitmap takenImage;
+
+    public String getOther() {
+        return Other;
+    }
+
+    public void setOther(String other) {
+        Other = other;
+    }
+
     public String getGIS() {
         return GIS;
     }
@@ -84,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
         imageView.setImageBitmap(null);
         setGIS(inpGIS.getText().toString());
         setZone(inpZONE.getText().toString());
+        setOther(inpOther.getText().toString());
         if(getGIS().isEmpty() || getZone().isEmpty()){
             Toast.makeText(MainActivity.this,"please fill Sector and GIS", Toast.LENGTH_SHORT).show();
         }
@@ -169,7 +180,7 @@ public class MainActivity extends AppCompatActivity {
                         Locale.getDefault()).format(new Date());
                 String file_name="Z-"+getZone()+"-"+getGIS();
                 String root = Environment.getExternalStorageDirectory().getPath();
-                File myDir = new File(root + "/Android/data/com.example.camera/files/Pictures/Jalandhar Survey Images /"+dd+"-"+mm+"-"+yyyy+"/"+"Z-"+getZone());
+                File myDir = new File(root + "/Android/data/com.example.camera/files/Pictures/Jalandhar Survey Images /"+dd+"-"+mm+"-"+yyyy+"/"+"S-"+getZone());
                 myDir.mkdirs();
 
                 if(myDir.exists()){

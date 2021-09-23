@@ -41,6 +41,21 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:text="Other "
+            android:textSize="15sp"
+            android:layout_marginBottom="19sp"
+            />
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:layout_marginBottom="12sp"
+            android:id="@+id/inpOther"
+            android:hint="other like sub sector"
+            />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:text="Enter GIS "
             android:textSize="15sp"
             android:layout_marginBottom="12sp"
