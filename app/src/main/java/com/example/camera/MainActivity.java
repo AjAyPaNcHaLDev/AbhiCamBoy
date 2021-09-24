@@ -161,7 +161,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
-@Override
+    @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_IMAGE_CAPTURE) {
@@ -178,10 +178,26 @@ public class MainActivity extends AppCompatActivity {
                         Locale.getDefault()).format(new Date());
                 String dd = new SimpleDateFormat("dd",
                         Locale.getDefault()).format(new Date());
-                String file_name="Z-"+getZone()+"-"+getGIS();
+                String file_name;
+
+                if(getOther().isEmpty())
+                    file_name="S-"+getZone()+"-"+getGIS();
+                else
+                    file_name="S-"+getZone()+"-S"+getOther()+"-"+getGIS();
+
                 String root = Environment.getExternalStorageDirectory().getPath();
-                File myDir = new File(root + "/Android/data/com.example.camera/files/Pictures/Jalandhar Survey Images /"+dd+"-"+mm+"-"+yyyy+"/"+"S-"+getZone());
+                File myDir;
+                if( getOther().isEmpty())
+                    myDir = new File(root + "/Android/data/com.example.camera/files/Jalandhar Survey Images/" + dd + "-" + mm + "-" + yyyy + "/" + "S-" + getZone());
+
+                else
+                    myDir = new File(root + "/Android/data/com.example.camera/files/Jalandhar Survey Images/" + dd + "-" + mm + "-" + yyyy + "/" + "S-" +
+                            getZone()+"/"+"Sub Sector "+getOther());
+
                 myDir.mkdirs();
+
+
+
 
                 if(myDir.exists()){
 
@@ -208,7 +224,7 @@ public class MainActivity extends AppCompatActivity {
                                             out.flush();
                                             out.close();
                                             imageView.setImageBitmap(takenImage);
-                                            Toast.makeText(MainActivity.this,"S-"+getZone()+"-"+getGIS()+ "re recapture successfully Saved", Toast.LENGTH_LONG).show();
+                                            Toast.makeText(MainActivity.this,file_name+ "re recapture successfully Saved", Toast.LENGTH_LONG).show();
                                         } catch (Exception e) {
                                             e.printStackTrace();
                                             Toast.makeText(MainActivity.this,e.toString(), Toast.LENGTH_LONG).show();
@@ -239,7 +255,7 @@ public class MainActivity extends AppCompatActivity {
                             out.flush();
                             out.close();
                             imageView.setImageBitmap(takenImage);
-                            Toast.makeText(MainActivity.this,"S-"+getZone()+"-"+getGIS()+ " successfully Saved", Toast.LENGTH_LONG).show();
+                            Toast.makeText(MainActivity.this,file_name+ " successfully Saved", Toast.LENGTH_LONG).show();
                         } catch (Exception e) {
                             e.printStackTrace();
                             Toast.makeText(MainActivity.this,e.toString(), Toast.LENGTH_LONG).show();
@@ -288,6 +304,7 @@ public class MainActivity extends AppCompatActivity {
                 capturePic=findViewById(R.id.capturePic);
                 inpGIS=findViewById(R.id.inpGIS);
                 inpZONE=findViewById(R.id.inpZONE);
+                inpOther=findViewById(R.id.inpOther);
                 accessCamera();
                 accessMemory();
 
