@@ -1,6 +1,5 @@
-package com.example.camera;
+package ajay.developer.camera;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -25,6 +24,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import ajay.developer.camera.R;
 import com.karumi.dexter.Dexter;
 import com.karumi.dexter.PermissionToken;
 import com.karumi.dexter.listener.PermissionDeniedResponse;
@@ -115,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
                 // Continue only if the File was successfully created
                 if (photoFile != null) {
                     Uri photoURI = FileProvider.getUriForFile(this,
-                            "com.example.camera.fileprovider",
+                            "ajay.developer.camera.fileprovider",
                             photoFile);
                     takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
 
@@ -183,15 +183,15 @@ public class MainActivity extends AppCompatActivity {
                 if(getOther().isEmpty())
                     file_name="S-"+getZone()+"-"+getGIS();
                 else
-                    file_name="S-"+getZone()+"-S"+getOther()+"-"+getGIS();
+                    file_name="S-"+getZone()+"-S-"+getOther()+"-"+getGIS();
 
                 String root = Environment.getExternalStorageDirectory().getPath();
                 File myDir;
                 if( getOther().isEmpty())
-                    myDir = new File(root + "/Android/data/com.example.camera/files/Jalandhar Survey Images/" + dd + "-" + mm + "-" + yyyy + "/" + "S-" + getZone());
+                    myDir = new File(root + "/Android/data/ajay.developer.camera/files/Jalandhar Survey Images/" + dd + "-" + mm + "-" + yyyy + "/" + "S-" + getZone());
 
                 else
-                    myDir = new File(root + "/Android/data/com.example.camera/files/Jalandhar Survey Images/" + dd + "-" + mm + "-" + yyyy + "/" + "S-" +
+                    myDir = new File(root + "/Android/data/ajay.developer.camera/files/Jalandhar Survey Images/" + dd + "-" + mm + "-" + yyyy + "/" + "S-" +
                             getZone()+"/"+"Sub Sector "+getOther());
 
                 myDir.mkdirs();

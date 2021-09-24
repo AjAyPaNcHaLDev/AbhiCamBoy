@@ -1,4 +1,4 @@
-package com.example.camera;
+package ajay.developer.camera;
 
 import org.junit.Test;
 

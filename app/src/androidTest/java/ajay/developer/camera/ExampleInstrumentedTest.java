@@ -1,4 +1,4 @@
-package com.example.camera;
+package ajay.developer.camera;
 
 import android.content.Context;
 

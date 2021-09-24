@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.example.camera">
+    package="ajay.developer.camera">
     <uses-feature android:name="android.hardware.camera"
         android:required="true" />
     <uses-permission android:name="android.permission.CAMERA"/>
@@ -17,7 +17,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Camera">
         <activity
-            android:name=".MainActivity"
+            android:name="ajay.developer.camera.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -28,7 +28,7 @@
 
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="com.example.camera.fileprovider"
+            android:authorities="ajay.developer.camera.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data

@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".MainActivity">
+    tools:context="ajay.developer.camera.MainActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -37,6 +37,7 @@
             android:layout_marginBottom="12sp"
             android:id="@+id/inpZONE"
             android:hint="1 to 20"
+            android:textAlignment="textEnd"
             />
         <TextView
             android:layout_width="match_parent"
@@ -48,7 +49,7 @@
         <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-
+            android:textAlignment="textEnd"
             android:layout_marginBottom="12sp"
             android:id="@+id/inpOther"
             android:hint="other like sub sector"
@@ -60,16 +61,18 @@
             android:textSize="15sp"
             android:layout_marginBottom="12sp"
 
+
             />
 
         <EditText
+            android:id="@+id/inpGIS"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="textPersonName"
             android:layout_marginBottom="12sp"
-            android:id="@+id/inpGIS"
             android:hint="00000-00"
-            />
+            android:inputType="textPersonName"
+
+            android:textAlignment="textEnd" />
 
         <Button
             android:layout_width="300dp"
@@ -93,7 +96,7 @@
             android:layout_height="wrap_content"
             android:textAlignment="center"
             android:gravity="center"
-            android:textSize="12sp"
+            android:textSize="20sp"
             android:layout_marginTop="50dp"
             android:textColor="#00ff00"
             android:text="developed by \n Tech Infa Solutions  \n AjAyPaNcHaL"/>
