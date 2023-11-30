@@ -1,18 +1,26 @@
 package com.example.camera;
 
-import androidx.annotation.Nullable;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
+import androidx.core.content.PermissionChecker;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -36,20 +44,26 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
     ImageView imageView;
     Button capturePic;
-    public static final int REQUEST_IMAGE_CAPTURE=1;
+
+    String currentPhotoPath;
+    public static final int REQUEST_IMAGE_CAPTURE = 1;
     private String TAG = "TAGA";
     File photoFile = null;
     EditText inpGIS, inpZONE;
     String GIS;
     String Zone;
     String imageFileName;
+    private static final int PERMISSION_REQUEST_CODE = 100;
 
     public String getGIS() {
         return GIS;
@@ -59,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
         this.GIS = GIS;
     }
 
+
     public String getZone() {
         return Zone;
     }
@@ -67,31 +82,245 @@ public class MainActivity extends AppCompatActivity {
         Zone = zone;
     }
 
-
-
-    @Override
+    public double latitude, longitude;
+    LocationListener locationListener;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        myPermission();
+        imageView = findViewById(R.id.image_view);
+        capturePic = findViewById(R.id.capturePic);
+        inpGIS = findViewById(R.id.inpGIS);
+        inpZONE = findViewById(R.id.inpZONE);
+        checkPermissions();
+        capturePic.setOnClickListener(v -> {
+            dispatchTakePictureIntent();
+            locationListener = new LocationListener() {
+                @Override
+                public void onLocationChanged(Location location) {
+                    latitude = location.getLatitude();
+                    longitude = location.getLongitude();
+                }
+
+                @Override
+                public void onStatusChanged(String provider, int status, Bundle extras) {
+                }
+
+                @Override
+                public void onProviderEnabled(String provider) {
+                }
+
+                @Override
+                public void onProviderDisabled(String provider) {
+                    longitude=0;
+                    latitude=0;
+                    showEnableLocationDialog();
+                }
+            };
+            LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return;
+            }
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+
+        });
     }
+    private void showEnableLocationDialog() {
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
+        dialogBuilder.setTitle("Enable Location Services");
+        dialogBuilder.setMessage("Location services are required for this feature. Enable them now?");
+        dialogBuilder.setPositiveButton("Yes", (dialog, which) -> {
+            Intent locationSettingsIntent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+            startActivity(locationSettingsIntent);
+        });
+        dialogBuilder.setNegativeButton("No", (dialog, which) -> {
+            dialog.dismiss();
+            showEnableLocationDialog();
+        });
+        dialogBuilder.show();
+    }
+    private void checkPermissions() {
+        int cameraPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA);
+        int storagePermission = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        int locationPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
+
+        List<String> permissionsToRequest = new ArrayList<>();
+
+        if (cameraPermission != PackageManager.PERMISSION_GRANTED) {
+            permissionsToRequest.add(Manifest.permission.CAMERA);
+        }
+
+        if (storagePermission != PackageManager.PERMISSION_GRANTED) {
+            permissionsToRequest.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        }
+
+        if (locationPermission != PackageManager.PERMISSION_GRANTED) {
+            permissionsToRequest.add(Manifest.permission.ACCESS_FINE_LOCATION);
+        }
+
+        if (!permissionsToRequest.isEmpty()) {
+            ActivityCompat.requestPermissions(this, permissionsToRequest.toArray(new String[0]), PERMISSION_REQUEST_CODE);
+        }
+    }
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_IMAGE_CAPTURE) {
+            if (resultCode == RESULT_OK) {
+                // by this point we have the camera photo on disk
+                Bitmap takenImage = BitmapFactory.decodeFile(photoFile.getAbsolutePath());
+                // RESIZE BITMAP, see section below
+                // Load the taken image into a preview
+
+                String file_name = getGIS();
+                if(longitude<0||latitude<0){
+                    Toast.makeText(MainActivity.this,"Please check you location unable to print Geo code the recapture with gis id",Toast.LENGTH_LONG).show();
+                }
+                takenImage = bitmapWithGeoCode(takenImage,file_name);
+//                imageView.setImageBitmap(takenImage);
+                String yyyy = new SimpleDateFormat("yyyy",
+                        Locale.getDefault()).format(new Date());
+                String mm = new SimpleDateFormat("MM",
+                        Locale.getDefault()).format(new Date());
+                String dd = new SimpleDateFormat("dd",
+                        Locale.getDefault()).format(new Date());
+//                String file_name="Z-"+getZone()+"-"+getGIS();
+//                String root = Environment.getExternalStorageDirectory().getAbsolutePath();
+                File myDir = new File(Environment.getExternalStorageDirectory(), "android/media/" + this.getPackageName() + "/TIS  Survey Images /" + dd + "-" + mm + "-" + yyyy);
+                myDir.mkdirs();
+
+                if (myDir.exists()) {
+
+                    String fname = file_name + ".jpeg";
+                    File file = new File(myDir, fname);
 
 
+                    if (file.exists()) {
 
+                        AlertDialog.Builder reName = new AlertDialog.Builder(MainActivity.this);
+                        reName.setTitle("Alert");
+                        reName.setMessage("File Name: " + file_name + "\nDo you went to update picture ?");
+                        reName.setCancelable(false);
+
+                        Bitmap finalTakenImage = takenImage;
+                        reName.setPositiveButton("Yes reCapture",
+                                new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        file.delete();
+                                        try {
+
+                                            FileOutputStream out = new FileOutputStream(file);
+                                            finalTakenImage.compress(Bitmap.CompressFormat.JPEG, 100, out);
+                                            out.flush();
+                                            out.close();
+                                            imageView.setImageBitmap(finalTakenImage);
+                                            Toast.makeText(MainActivity.this, file_name + ".jpeg" + "recapture successfully Saved", Toast.LENGTH_LONG).show();
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                            Toast.makeText(MainActivity.this, e.toString(), Toast.LENGTH_LONG).show();
+                                        }
+                                    }
+                                }
+
+
+                        );
+
+                        reName.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                imageView.setImageBitmap(null);
+                                dialog.cancel();
+                            }
+                        });
+
+                        AlertDialog alr = reName.create();
+                        alr.show();
+
+                    }
+                    if (!file.exists()) {
+
+                        try {
+//                            Toast.makeText(MainActivity.this,"try block enter", Toast.LENGTH_LONG).show();
+                            FileOutputStream out = new FileOutputStream(file);
+                            takenImage.compress(Bitmap.CompressFormat.JPEG, 100, out);
+                            out.flush();
+                            out.close();
+                            imageView.setImageBitmap(takenImage);
+                            Toast.makeText(MainActivity.this, file_name + ".jpeg" + " successfully Saved", Toast.LENGTH_LONG).show();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            Toast.makeText(MainActivity.this, e.toString(), Toast.LENGTH_LONG).show();
+                        }
+
+
+                    }
+
+
+                } else {
+                    AlertDialog.Builder dirNotFound = new AlertDialog.Builder(MainActivity.this);
+                    dirNotFound.setMessage("a Technical error  while create Folder !\n" + myDir);
+                    dirNotFound.setTitle("Opps");
+                    dirNotFound.setPositiveButton("ok", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.cancel();
+                        }
+                    });
+
+                    AlertDialog alr = dirNotFound.create();
+                    alr.show();
+
+                }
+
+            } else { // Result was a failure
+                Toast.makeText(this, "Picture wasn't taken!", Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        File del = new File(currentPhotoPath);
+        del.delete();
+
+    }
+    public void openLinkDin(View view) {
+        String url = "https://www.linkedin.com/in/ajaypanchal1/"; // Replace with your URL
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+        startActivity(intent);
+    }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0) {
+                boolean cameraPermission = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+                boolean storagePermission = grantResults.length > 1 && grantResults[1] == PackageManager.PERMISSION_GRANTED;
+                if (cameraPermission && storagePermission) {
+                    dispatchTakePictureIntent();
+                } else {
+                    Toast.makeText(this, "Camera and storage permissions are required.", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+    }
 
     private void dispatchTakePictureIntent() {
         imageView.setImageBitmap(null);
         setGIS(inpGIS.getText().toString());
         setZone(inpZONE.getText().toString());
-        if(getGIS().isEmpty() || getZone().isEmpty()){
-            Toast.makeText(MainActivity.this,"please fill ZONE and GIS", Toast.LENGTH_SHORT).show();
-        }
-        else {
-            Log.e(TAG, "dispatchTakePictureIntent: " );
+        if (!(!getGIS().isEmpty() && getGIS().length() >= 7 && getGIS().length() <= 12)) {
+            Toast.makeText(MainActivity.this, "Please ensure that the GIS length is greater than 6 or less then 12 characters.", Toast.LENGTH_SHORT).show();
+        } else {
+            Log.e(TAG, "dispatchTakePictureIntent: ");
             Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             // Ensure that there's a camera activity to handle the intent
             if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-                Log.e(TAG, "dispatchTakePictureIntent: inside resoleActivity," );
+                Log.e(TAG, "dispatchTakePictureIntent: inside resoleActivity,");
                 // Create the File where the photo should go
 
                 try {
@@ -113,20 +342,13 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             }
-            Log.e(TAG, "dispatchTakePictureIntent: end" );
+            Log.e(TAG, "dispatchTakePictureIntent: end");
         }
 
 
-
-
     }
-
-
-
-    String currentPhotoPath;
-
-    private File createImageFile() throws IOException {
-        Log.e(TAG, "createImageFile: " );
+    private File createImageFile() throws IOException   {
+        Log.e(TAG, "createImageFile: ");
         // Create an image file name
 
         imageFileName = "JPEG_TEMP";
@@ -139,198 +361,42 @@ public class MainActivity extends AppCompatActivity {
 
         // Save a file: path for use with ACTION_VIEW intents
         currentPhotoPath = image.getAbsolutePath();
-        Log.e(TAG, "createImageFile: end "+currentPhotoPath );
-
+        Log.e(TAG, "createImageFile: end " + currentPhotoPath);
 
 
         return image;
     }
+    public Bitmap bitmapWithGeoCode(Bitmap takenImage,String file_name) {
+        Bitmap imageWithDateTimeAndGeo = Bitmap.createBitmap(takenImage.getWidth(), takenImage.getHeight(), takenImage.getConfig());
+        Canvas canvas = new Canvas(imageWithDateTimeAndGeo);
+        canvas.drawBitmap(takenImage, 0, 0, null);
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_IMAGE_CAPTURE) {
-            if (resultCode == RESULT_OK) {
-                // by this point we have the camera photo on disk
-                Bitmap takenImage = BitmapFactory.decodeFile(photoFile.getAbsolutePath());
-                // RESIZE BITMAP, see section below
-                // Load the taken image into a preview
+// Add date and time text to the image
+        Paint paint = new Paint();
+        paint.setColor(Color.BLUE); // Text color
+        paint.setTextSize(50); // Text size
+        paint.setAntiAlias(true);
+        paint.setTextAlign(Paint.Align.LEFT);
 
-                imageView.setImageBitmap(takenImage);
-                String yyyy = new SimpleDateFormat("yyyy",
-                        Locale.getDefault()).format(new Date());
-                String mm = new SimpleDateFormat("MM",
-                        Locale.getDefault()).format(new Date());
-                String dd = new SimpleDateFormat("dd",
-                        Locale.getDefault()).format(new Date());
-                String file_name="Z-"+getZone()+"-"+getGIS();
-                String root = Environment.getExternalStorageDirectory().getAbsolutePath();
-                File myDir = new File(root + "/Abohar Survey Images /"+dd+"-"+mm+"-"+yyyy+"/"+"Z-"+getZone());
-                myDir.mkdirs();
+        String dateTimeString = getCurrentDateTime();
+        String locationString = String.format(Locale.getDefault(), "%.6f  %.6f", longitude, latitude);
+        String formattedText = dateTimeString + "\n" + locationString+"\n"+file_name;
+        String[] lines = formattedText.split("\n");
 
-                if(myDir.exists()){
+        int x = 40;
+        int y = 50;
 
-                    String fname = file_name+".jpeg";
-                    File file = new File (myDir, fname);
-
-
-                    if(file.exists()){
-
-                        AlertDialog.Builder reName=new AlertDialog.Builder(MainActivity.this);
-                        reName.setTitle("Alert");
-                        reName.setMessage("You went to "+getZone()+"-" +getGIS()+" reCapture picture ?"+currentPhotoPath+ imageFileName);
-                        reName.setCancelable(false);
-
-                        reName.setPositiveButton("Yes reCapture",
-                                new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        file.delete ();
-                                        try {
-
-                                            FileOutputStream out = new FileOutputStream(file);
-                                            takenImage.compress(Bitmap.CompressFormat.JPEG, 20, out);
-                                            out.flush();
-                                            out.close();
-                                            imageView.setImageBitmap(takenImage);
-                                            Toast.makeText(MainActivity.this,"Z-"+getZone()+"-"+getGIS()+ "re recapture successfully Saved", Toast.LENGTH_LONG).show();
-                                        } catch (Exception e) {
-                                            e.printStackTrace();
-                                            Toast.makeText(MainActivity.this,e.toString(), Toast.LENGTH_LONG).show();
-                                        }
-                                    }
-                                }
-
-
-                        );
-
-                        reName.setNegativeButton("No", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.cancel();
-                            }
-                        });
-
-                        AlertDialog alr=reName.create();
-                        alr.show();
-
-                    }
-                    if(!file.exists()){
-
-                        try {
-                            Toast.makeText(MainActivity.this,"try block enter", Toast.LENGTH_LONG).show();
-                            FileOutputStream out = new FileOutputStream(file);
-                            takenImage.compress(Bitmap.CompressFormat.JPEG, 20, out);
-                            out.flush();
-                            out.close();
-                            imageView.setImageBitmap(takenImage);
-                            Toast.makeText(MainActivity.this,"Z-"+getZone()+"-"+getGIS()+ " successfully Saved", Toast.LENGTH_LONG).show();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            Toast.makeText(MainActivity.this,e.toString(), Toast.LENGTH_LONG).show();
-                        }
-
-
-                    }
-
-
-
-
-                }else{
-
-                    AlertDialog.Builder dirNotFound  =new AlertDialog.Builder(MainActivity.this);
-                    dirNotFound.setMessage("a Technical error  while create Folder !\n"+myDir);
-                    dirNotFound.setTitle("Opps");
-                    dirNotFound.setPositiveButton("ok", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.cancel();
-                        }
-                    });
-
-                    AlertDialog alr=dirNotFound.create();
-                    alr.show();
-
-                }
-
-            } else { // Result was a failure
-                Toast.makeText(this, "Picture wasn't taken!", Toast.LENGTH_SHORT).show();
-            }
+        for (String line : lines) {
+            canvas.drawText(line, x, y, paint);
+            y += paint.getTextSize(); // Move to the next line
         }
 
-        File del = new File (currentPhotoPath);
-        del.delete();
+        return imageWithDateTimeAndGeo;
 
     }
-
-
-    public  void myPermission(){
-        Dexter.withContext(this)
-                .withPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE).withListener(new PermissionListener() {
-            @Override
-            public void onPermissionGranted(PermissionGrantedResponse permissionGrantedResponse) {
-                imageView=findViewById(R.id.image_view);
-                capturePic=findViewById(R.id.capturePic);
-                inpGIS=findViewById(R.id.inpGIS);
-                inpZONE=findViewById(R.id.inpZONE);
-                accessCamera();
-                accessMemory();
-
-                capturePic.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-
-                        dispatchTakePictureIntent();
-                    }
-                });
-            }
-
-            @Override
-            public void onPermissionDenied(PermissionDeniedResponse permissionDeniedResponse) {
-
-                capturePic=findViewById(R.id.capturePic);
-                capturePic.setText("Please allow all permissions");
-                capturePic.setOnClickListener(
-                        new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                myPermission();
-                                capturePic.setText("Capture & Save ");
-                            }
-                        }
-                );
-                Intent intent =new Intent();
-                intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                Uri uri=Uri.fromParts("package",getPackageName(),null);
-                intent.setData(uri);
-                accessCamera();
-                accessMemory();
-            }
-
-            @Override
-            public void onPermissionRationaleShouldBeShown(PermissionRequest permissionRequest, PermissionToken permissionToken) {
-                permissionToken.continuePermissionRequest();
-            }
-        }).check();
-
-
-    }
-
-    public void accessCamera(){
-        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-
-            ActivityCompat.requestPermissions(MainActivity.this,
-                    new String[]{
-                            Manifest.permission.CAMERA
-                    }, 100);}
-
-    }
-    public  void accessMemory(){
-        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE}, PackageManager.PERMISSION_GRANTED);
-        if(ContextCompat.checkSelfPermission(MainActivity.this,Manifest.permission.WRITE_EXTERNAL_STORAGE)!=PackageManager.PERMISSION_GRANTED){
-            ActivityCompat.requestPermissions(MainActivity.this,new  String[]{
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE
-            },100);
-        }
+    private String getCurrentDateTime() {
+        Calendar calendar = Calendar.getInstance();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+        return dateFormat.format(calendar.getTime());
     }
 }
