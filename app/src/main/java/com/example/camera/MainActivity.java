@@ -127,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
                 // for ActivityCompat#requestPermissions for more details.
                 return;
             }
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10, 0, locationListener);
 
         });
     }
@@ -313,8 +313,8 @@ public class MainActivity extends AppCompatActivity {
         imageView.setImageBitmap(null);
         setGIS(inpGIS.getText().toString());
         setZone(inpZONE.getText().toString());
-        if (!(!getGIS().isEmpty() && getGIS().length() >= 7 && getGIS().length() <= 12)) {
-            Toast.makeText(MainActivity.this, "Please ensure that the GIS length is greater than 6 or less then 12 characters.", Toast.LENGTH_SHORT).show();
+        if (!(!getGIS().isEmpty() && getGIS().length() >= 7 && getGIS().length() <= 15)) {
+            Toast.makeText(MainActivity.this, "Please ensure that the GIS length is greater than 6 or less then 15  characters.", Toast.LENGTH_SHORT).show();
         } else {
             Log.e(TAG, "dispatchTakePictureIntent: ");
             Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -377,7 +377,7 @@ public class MainActivity extends AppCompatActivity {
         paint.setTextSize(50); // Text size
         paint.setAntiAlias(true);
         paint.setTextAlign(Paint.Align.LEFT);
-
+Toast.makeText(MainActivity.this,"Location Code: "+longitude + " "+ latitude,Toast.LENGTH_LONG).show();
         String dateTimeString = getCurrentDateTime();
         String locationString = String.format(Locale.getDefault(), "%.6f  %.6f", longitude, latitude);
         String formattedText = dateTimeString + "\n" + locationString+"\n"+file_name;
