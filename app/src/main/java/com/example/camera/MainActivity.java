@@ -377,7 +377,7 @@ public class MainActivity extends AppCompatActivity {
         paint.setTextSize(50); // Text size
         paint.setAntiAlias(true);
         paint.setTextAlign(Paint.Align.LEFT);
-Toast.makeText(MainActivity.this,"Location Code: "+longitude + " "+ latitude,Toast.LENGTH_LONG).show();
+//Toast.makeText(MainActivity.this,"Location Code: "+longitude + " "+ latitude,Toast.LENGTH_LONG).show();
         String dateTimeString = getCurrentDateTime();
         String locationString = String.format(Locale.getDefault(), "%.6f  %.6f", longitude, latitude);
         String formattedText = dateTimeString + "\n" + locationString+"\n"+file_name;
